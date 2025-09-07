@@ -200,43 +200,58 @@ export const authHelpers = {
       };
     }
     
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-    
-    // If user profile doesn't exist, create one from auth user data
-    if (error && error.code === 'PGRST116') {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const newProfile = {
-          id: user.id,
-          email: user.email!,
-          full_name: user.user_metadata?.full_name || 'User',
-          student_id: user.user_metadata?.student_id || '',
-          department: user.user_metadata?.department || '',
-          year: user.user_metadata?.year || null,
-          role: user.user_metadata?.role || 'student',
-          campus_coin_balance: 0,
-          total_earned: 0,
-          total_spent: 0,
-          is_active: true
-        };
-        
-        const { data: insertedData, error: insertError } = await supabase
-          .from('users')
-          .insert(newProfile)
-          .select()
-          .single();
-        
-        if (!insertError) {
-          return { data: insertedData, error: null };
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      // If user profile doesn't exist, create one from auth user data
+      if (error && error.code === 'PGRST116') {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const newProfile = {
+            id: user.id,
+            email: user.email!,
+            full_name: user.user_metadata?.full_name || 'User',
+            student_id: user.user_metadata?.student_id || '',
+            department: user.user_metadata?.department || '',
+            year: user.user_metadata?.year || null,
+            role: user.user_metadata?.role || 'student',
+            campus_coin_balance: 0,
+            total_earned: 0,
+            total_spent: 0,
+            is_active: true
+          };
+          
+          const { data: insertedData, error: insertError } = await supabase
+            .from('users')
+            .insert(newProfile)
+            .select()
+            .single();
+          
+          if (!insertError) {
+            return { data: insertedData, error: null };
+          } else {
+            console.error('Error creating profile:', insertError);
+            return { data: null, error: insertError };
+          }
         }
       }
+      
+      return { data, error };
+    } catch (unexpectedError) {
+      console.error('Unexpected error in getProfile:', unexpectedError);
+      return { 
+        data: null, 
+        error: {
+          message: unexpectedError instanceof Error ? unexpectedError.message : 'Unknown error',
+          code: 'UNEXPECTED_ERROR',
+          details: 'An unexpected error occurred while fetching profile'
+        }
+      };
     }
-    
-    return { data, error };
   },
 
   async updateProfile(userId: string, updates: Partial<User>) {

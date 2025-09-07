@@ -59,12 +59,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await authHelpers.getProfile(userId);
       if (error) {
-        console.error('Error loading profile:', error);
+        console.error('Error loading profile:', {
+          message: error.message || 'Unknown error',
+          code: error.code || 'NO_CODE',
+          details: error.details || 'No details available',
+          hint: (error as any).hint || 'No hint available',
+          userId: userId
+        });
+        // Set default profile for demo mode or when profile doesn't exist
+        if (!supabase || error.code === 'PGRST116') {
+          setProfile({
+            id: userId,
+            email: 'demo@campus.edu',
+            full_name: 'Demo Student',
+            student_id: 'STU001',
+            department: 'computer_science',
+            year: 2,
+            role: 'student',
+            campus_coin_balance: 150.50,
+            total_earned: 200.00,
+            total_spent: 49.50,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+        }
       } else {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Unexpected error loading profile:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        userId: userId
+      });
+      // Set fallback profile on unexpected errors
+      setProfile({
+        id: userId,
+        email: 'demo@campus.edu',
+        full_name: 'Demo Student',
+        student_id: 'STU001',
+        department: 'computer_science',
+        year: 2,
+        role: 'student',
+        campus_coin_balance: 150.50,
+        total_earned: 200.00,
+        total_spent: 49.50,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
     } finally {
       setLoading(false);
     }
