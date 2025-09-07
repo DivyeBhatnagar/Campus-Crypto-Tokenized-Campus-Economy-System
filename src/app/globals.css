@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    background-color: #e0e5ec;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1e1e2f;
+  }
+}
+
+@layer components {
+  .neumorphic {
+    @apply shadow-neumorphic rounded-2xl;
+  }
+  
+  .neumorphic-inset {
+    @apply shadow-neumorphic-inset rounded-2xl;
+  }
+  
+  .neumorphic-sm {
+    @apply shadow-neumorphic-sm rounded-xl;
+  }
+  
+  .neumorphic-lg {
+    @apply shadow-neumorphic-lg rounded-3xl;
+  }
+  
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-2xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-background text-primary px-6 py-3 rounded-2xl font-medium neumorphic hover:shadow-neumorphic-lg transform hover:scale-105 transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-background p-6 neumorphic;
+  }
+  
+  .input-neumorphic {
+    @apply bg-background border-none outline-none px-4 py-3 rounded-2xl shadow-neumorphic-inset text-text placeholder-text/50 focus:shadow-neumorphic-inset;
+  }
+}
