@@ -3,49 +3,138 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  :root {
+    --background: 240 5% 96%; /* #f5f5f5 */
+    --foreground: 218 50% 15%; /* #002970 */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 218 50% 15%; /* #002970 */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 218 50% 15%; /* #002970 */
+    --primary: 218 50% 15%; /* #002970 */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    --secondary: 197 100% 47%; /* #00baf2 */
+    --secondary-foreground: 0 0% 100%; /* #ffffff */
+    --muted: 240 5% 96%; /* #f5f5f5 */
+    --muted-foreground: 218 50% 25%; /* #004080 */
+    --accent: 197 100% 47%; /* #00baf2 */
+    --accent-foreground: 0 0% 100%; /* #ffffff */
+    --destructive: 0 84% 60%; /* #ef4444 */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --border: 240 6% 82%; /* #d1d1d1 */
+    --input: 240 6% 90%; /* #e5e5e5 */
+    --ring: 197 100% 47%; /* #00baf2 */
+    --radius: 0.75rem;
   }
-  
+
+  .dark {
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
+    --card: 0 0% 5%; /* #0d0d0d */
+    --card-foreground: 0 0% 100%; /* #ffffff */
+    --popover: 0 0% 5%; /* #0d0d0d */
+    --popover-foreground: 0 0% 100%; /* #ffffff */
+    --primary: 197 100% 47%; /* #00baf2 */
+    --primary-foreground: 0 0% 0%; /* #000000 */
+    --secondary: 218 50% 15%; /* #002970 */
+    --secondary-foreground: 0 0% 100%; /* #ffffff */
+    --muted: 0 0% 10%; /* #1a1a1a */
+    --muted-foreground: 0 0% 70%; /* #b3b3b3 */
+    --accent: 197 100% 47%; /* #00baf2 */
+    --accent-foreground: 0 0% 0%; /* #000000 */
+    --destructive: 0 84% 60%; /* #ef4444 */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    --border: 0 0% 20%; /* #333333 */
+    --input: 0 0% 15%; /* #262626 */
+    --ring: 197 100% 47%; /* #00baf2 */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
   body {
-    background-color: #e0e5ec;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    color: #1e1e2f;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
 @layer components {
-  .neumorphic {
-    @apply shadow-neumorphic rounded-2xl;
+  /* Neumorphic button base */
+  .neumorphic-btn {
+    @apply relative overflow-hidden rounded-xl shadow-neumorphic transition-all duration-200 ease-out;
+    @apply hover:shadow-neumorphic-sm active:shadow-neumorphic-pressed;
   }
-  
-  .neumorphic-inset {
-    @apply shadow-neumorphic-inset rounded-2xl;
+
+  /* Neumorphic card base */
+  .neumorphic-card {
+    @apply rounded-2xl shadow-neumorphic transition-all duration-300 ease-out;
+    @apply hover:shadow-neumorphic-lg;
   }
-  
-  .neumorphic-sm {
-    @apply shadow-neumorphic-sm rounded-xl;
+
+  /* Neumorphic input base */
+  .neumorphic-input {
+    @apply rounded-xl shadow-neumorphic-inset transition-all duration-200 ease-out;
+    @apply focus:shadow-neumorphic-pressed outline-none;
   }
-  
-  .neumorphic-lg {
-    @apply shadow-neumorphic-lg rounded-3xl;
+
+  /* Gradient overlay for interactive elements */
+  .gradient-overlay {
+    @apply absolute inset-0 rounded-xl opacity-0 transition-opacity duration-200;
+    background: linear-gradient(135deg, rgba(0, 186, 242, 0.1) 0%, rgba(0, 41, 112, 0.1) 100%);
   }
-  
-  .btn-primary {
-    @apply bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-2xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200;
+
+  .gradient-overlay:hover {
+    @apply opacity-100;
   }
-  
-  .btn-secondary {
-    @apply bg-background text-primary px-6 py-3 rounded-2xl font-medium neumorphic hover:shadow-neumorphic-lg transform hover:scale-105 transition-all duration-200;
+
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
   }
-  
-  .card {
-    @apply bg-background p-6 neumorphic;
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-background rounded-full;
   }
-  
-  .input-neumorphic {
-    @apply bg-background border-none outline-none px-4 py-3 rounded-2xl shadow-neumorphic-inset text-text placeholder-text/50 focus:shadow-neumorphic-inset;
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-secondary rounded-full;
   }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary;
+  }
+
+  /* Loading animation */
+  .loading-pulse {
+    @apply animate-pulse bg-gradient-to-r from-muted via-background to-muted bg-[length:200%_100%];
+    animation: loading-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes loading-pulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* XP Progress bar */
+  .xp-progress {
+    @apply relative overflow-hidden rounded-full bg-muted shadow-neumorphic-inset;
+  }
+
+  .xp-progress::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: linear-gradient(90deg, #00baf2 0%, #002970 100%);
+    transform: translateX(-100%);
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .xp-progress[data-progress="25"]::before { transform: translateX(-75%); }
+  .xp-progress[data-progress="50"]::before { transform: translateX(-50%); }
+  .xp-progress[data-progress="75"]::before { transform: translateX(-25%); }
+  .xp-progress[data-progress="100"]::before { transform: translateX(0%); }
 }

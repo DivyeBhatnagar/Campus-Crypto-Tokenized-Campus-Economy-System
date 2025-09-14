@@ -1,45 +1,76 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
+import { cn } from "@/lib/utils"
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  icon?: React.ReactNode;
+const inputVariants = cva(
+  "neumorphic-input flex w-full border-0 bg-background px-4 py-3 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default: "text-foreground",
+        ghost: "bg-transparent shadow-none border border-border focus:shadow-neumorphic-sm",
+      },
+      size: {
+        default: "h-12",
+        sm: "h-10 px-3 py-2 text-sm",
+        lg: "h-14 px-6 py-4 text-base",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface InputProps
+  extends React.InputHTMLAttributes<HTMLInputElement>,
+    VariantProps<typeof inputVariants> {
+  label?: string
+  error?: string
+  icon?: React.ReactNode
 }
 
-export const Input: React.FC<InputProps> = ({ 
-  className, 
-  label,
-  error,
-  icon,
-  ...props 
-}) => {
-  return (
-    <div className="w-full">
-      {label && (
-        <label className="block text-sm font-medium text-text/80 mb-2">
-          {label}
-        </label>
-      )}
-      <div className="relative">
-        {icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text/50">
-            {icon}
-          </div>
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, variant, size, type, label, error, icon, ...props }, ref) => {
+    const inputId = React.useId()
+    
+    return (
+      <div className="w-full space-y-2">
+        {label && (
+          <label
+            htmlFor={inputId}
+            className="text-sm font-medium text-foreground"
+          >
+            {label}
+          </label>
         )}
-        <input
-          className={cn(
-            'w-full bg-background border-none outline-none rounded-2xl shadow-neumorphic-inset text-text placeholder-text/50 focus:shadow-neumorphic-inset transition-all duration-200',
-            icon ? 'pl-10 pr-4 py-3' : 'px-4 py-3',
-            error && 'ring-2 ring-accent/20',
-            className
+        <div className="relative">
+          {icon && (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {icon}
+            </div>
           )}
-          {...props}
-        />
+          <input
+            id={inputId}
+            type={type}
+            className={cn(
+              inputVariants({ variant, size }),
+              icon && "pl-10",
+              error && "ring-2 ring-destructive/20",
+              className
+            )}
+            ref={ref}
+            {...props}
+          />
+        </div>
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
       </div>
-      {error && (
-        <p className="mt-1 text-sm text-accent">{error}</p>
-      )}
-    </div>
-  );
-};
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input, inputVariants }

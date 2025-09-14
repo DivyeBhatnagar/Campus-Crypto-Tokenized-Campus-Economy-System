@@ -1,13 +1,16 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import type { Metadata } from 'next'
 import { AuthProvider } from '@/hooks/useAuth'
-// import { Web3Provider } from '@/components/providers/Web3Provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: 'Tokenized Campus Economy',
-  description: 'A blockchain-powered campus token economy platform',
+export const metadata: Metadata = {
+  title: 'Campus Coin | Student Engagement Platform',
+  description: 'A modern neumorphic student engagement and management platform bringing together students, clubs, and administrators.',
+  keywords: ['campus', 'student', 'engagement', 'platform', 'education', 'connect'],
+  authors: [{ name: 'Campus Coin Team' }],
+  viewport: 'width=device-width, initial-scale=1',
 }
 
 export default function RootLayout({
@@ -16,15 +19,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background antialiased`}>
         <AuthProvider>
-          {/* Temporarily disabled Web3Provider to fix dependency issues */}
-          {/* <Web3Provider> */}
-            <main className="min-h-screen bg-background">
+          <div className="flex min-h-screen flex-col">
+            <main className="flex-1">
               {children}
             </main>
-          {/* </Web3Provider> */}
+          </div>
         </AuthProvider>
       </body>
     </html>

@@ -1,372 +1,570 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import * as React from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/Button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card"
+import { Badge } from "@/components/ui/Badge"
+import { Navigation } from "@/components/layout/Navigation"
+import { useAuth } from "@/hooks/useAuth"
 import { 
-  Coins, 
-  Trophy, 
   TrendingUp, 
-  Activity, 
-  Eye,
-  Send,
-  Download,
-  Calendar,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Clock
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { dbHelpers, Transaction } from '@/lib/supabase';
+  Calendar, 
+  Users, 
+  Trophy, 
+  Coins, 
+  Award, 
+  Plus,
+  ArrowRight,
+  Flame,
+  Star,
+  Target,
+  BookOpen,
+  Coffee,
+  Music,
+  Gamepad2,
+  Camera,
+  Zap,
+  Clock,
+  MapPin,
+  BarChart3,
+  Activity,
+  Crown,
+  Medal,
+  Gift,
+  ShoppingCart,
+  Book,
+  Music4,
+  Palette,
+  Dumbbell
+} from "lucide-react"
 
-// Simple UI components for dashboard
-function SimpleCard({ children, className = '', ...props }: any) {
-  return (
-    <div className={`bg-background rounded-2xl p-6 shadow-neumorphic ${className}`} {...props}>
-      {children}
-    </div>
-  );
-}
+const quickActions = [
+  { label: "Join Study Group", href: "/clubs/study-groups", icon: BookOpen, color: "bg-blue-500" },
+  { label: "Browse Events", href: "/events", icon: Calendar, color: "bg-green-500" },
+  { label: "Find Clubs", href: "/clubs", icon: Users, color: "bg-purple-500" },
+  { label: "View Marketplace", href: "/marketplace", icon: ShoppingCart, color: "bg-orange-500" }
+]
 
-function SimpleButton({ children, variant = 'primary', size = 'md', className = '', ...props }: {
-  children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
-  className?: string;
-  [key: string]: any;
-}) {
-  const variants = {
-    primary: 'bg-primary text-white shadow-neumorphic hover:shadow-neumorphic-lg',
-    secondary: 'bg-secondary text-white shadow-neumorphic hover:shadow-neumorphic-lg',
-    outline: 'bg-transparent border-2 border-primary text-primary hover:bg-primary hover:text-white',
-  };
-  
-  const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-6 py-3',
-    lg: 'px-8 py-4 text-lg',
-  };
+const leaderboardPreview = [
+  { rank: 1, name: "Alex Chen", xp: 5420, avatar: "AC", change: "+2 today" },
+  { rank: 2, name: "Sarah Wilson", xp: 4890, avatar: "SW", change: "+15 today" },
+  { rank: 3, name: "Marcus Johnson", xp: 4250, avatar: "MJ", change: "+8 today" }
+]
 
-  return (
-    <button
-      className={`rounded-xl font-medium transition-all duration-200 ${variants[variant]} ${sizes[size]} ${className}`}
-      {...props}
-    >
-      {children}
-    </button>
-  );
-}
+// Enhanced campus buzz with more variety
+const campusBuzz = [
+  {
+    id: 1,
+    title: "New Gaming Lounge Opens Next Week!",
+    type: "announcement",
+    time: "2 hours ago",
+    icon: Gamepad2,
+    category: "Entertainment"
+  },
+  {
+    id: 2,
+    title: "Photography Exhibition Now Open",
+    type: "event",
+    time: "4 hours ago",
+    icon: Camera,
+    category: "Arts"
+  },
+  {
+    id: 3,
+    title: "Free Coffee Hours in Student Union",
+    type: "offer",
+    time: "6 hours ago",
+    icon: Coffee,
+    category: "Food & Drink"
+  },
+  {
+    id: 4,
+    title: "Campus Music Festival Lineup Released",
+    type: "event",
+    time: "1 day ago",
+    icon: Music4,
+    category: "Music"
+  }
+]
 
-function StatsCard({ title, value, icon: Icon, trend, trendValue, color = 'primary' }: {
-  title: string;
-  value: string;
-  icon: any;
-  trend?: 'up' | 'down';
-  trendValue?: string;
-  color?: 'primary' | 'secondary' | 'success' | 'accent';
-}) {
-  const colorClasses = {
-    primary: 'text-primary bg-primary/10',
-    secondary: 'text-secondary bg-secondary/10',
-    success: 'text-success bg-success/10',
-    accent: 'text-accent bg-accent/10'
-  };
+// Stats for the additional cards
+const additionalStats = [
+  { label: "Study Hours", value: "12.5", change: "+2.3", icon: Book, color: "text-blue-500" },
+  { label: "Campus Coins", value: "1,250", change: "+150", icon: Coins, color: "text-yellow-500" },
+  { label: "Friends Made", value: "24", change: "+3", icon: Users, color: "text-green-500" },
+  { label: "Achievements", value: "18", change: "+2", icon: Medal, color: "text-purple-500" }
+]
 
-  return (
-    <SimpleCard className="relative overflow-hidden">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${colorClasses[color]}`}>
-          <Icon className="w-6 h-6" />
-        </div>
-        {trend && (
-          <div className={`flex items-center gap-1 text-sm ${trend === 'up' ? 'text-success' : 'text-accent'}`}>
-            {trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <ArrowDownLeft className="w-4 h-4" />}
-            {trendValue}
-          </div>
-        )}
-      </div>
-      <div>
-        <h3 className="text-2xl font-bold text-text mb-1">{value}</h3>
-        <p className="text-text/70 text-sm">{title}</p>
-      </div>
-    </SimpleCard>
-  );
-}
+// Event categories with icons and colors
+const eventCategories = [
+  { name: "Academic", icon: Book, color: "bg-blue-100 text-blue-800", count: 12 },
+  { name: "Tech", icon: Activity, color: "bg-indigo-100 text-indigo-800", count: 8 },
+  { name: "Arts", icon: Palette, color: "bg-pink-100 text-pink-800", count: 5 },
+  { name: "Music", icon: Music4, color: "bg-purple-100 text-purple-800", count: 3 },
+  { name: "Sports", icon: Dumbbell, color: "bg-green-100 text-green-800", count: 7 },
+  { name: "Social", icon: Users, color: "bg-yellow-100 text-yellow-800", count: 15 }
+]
 
-function TransactionItem({ transaction }: { transaction: Transaction }) {
-  const isPositive = transaction.type === 'earn' || transaction.type === 'reward';
-  
-  return (
-    <div className="flex items-center justify-between p-4 bg-background/50 rounded-xl">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${isPositive ? 'bg-success/10 text-success' : 'bg-accent/10 text-accent'}`}>
-          {isPositive ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-        </div>
-        <div>
-          <p className="font-medium text-text">{transaction.description}</p>
-          <p className="text-sm text-text/60">{new Date(transaction.created_at).toLocaleDateString()}</p>
-        </div>
-      </div>
-      <div className="text-right">
-        <p className={`font-semibold ${isPositive ? 'text-success' : 'text-accent'}`}>
-          {isPositive ? '+' : '-'}{transaction.amount} CAMPUS
-        </p>
-        <p className="text-sm text-text/60 capitalize">{transaction.status}</p>
-      </div>
-    </div>
-  );
-}
+export default function StudentDashboard() {
+  const { user, loading } = useAuth()
 
-export default function DashboardPage() {
-  const { user, profile, loading } = useAuth();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loadingTransactions, setLoadingTransactions] = useState(false);
+  // Comprehensive debugging as per user preference
+  React.useEffect(() => {
+    console.log('🏠 === DASHBOARD DEBUG START ===')
+    console.log('⏳ Loading state:', loading)
+    console.log('👤 User state:', user)
+    console.log('🔍 User exists:', !!user)
+    console.log('📧 User email:', user?.email)
+    console.log('🎩 User role:', user?.role)
+    console.log('🆔 User ID:', user?.id)
+    console.log('🏠 === DASHBOARD DEBUG END ===')
+  }, [user, loading])
 
-  useEffect(() => {
-    if (user) {
-      loadTransactions();
-    }
-  }, [user]);
-
-  const loadTransactions = async () => {
-    if (!user) return;
-    
-    setLoadingTransactions(true);
-    try {
-      const { data, error } = await dbHelpers.getUserTransactions(user.id);
-      if (!error && data) {
-        setTransactions(data);
-      }
-    } catch (error) {
-      console.error('Error loading transactions:', error);
-    } finally {
-      setLoadingTransactions(false);
-    }
-  };
-
+  // Show loading spinner while fetching user data
   if (loading) {
+    console.log('⏳ Dashboard showing loading state - user loading:', loading)
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-text/70">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading your dashboard...</p>
+          {/* Debug panel as per user preference */}
+          <div className="mt-4 p-4 bg-muted/20 rounded-lg text-left max-w-md mx-auto">
+            <h3 className="font-semibold mb-2">🔍 Debug Info:</h3>
+            <div className="text-sm space-y-1">
+              <div>Loading: {loading ? '✗' : '✓'}</div>
+              <div>User: {user ? '✓' : '✗'}</div>
+              <div>User ID: {user?.id || 'None'}</div>
+              <div>User Email: {user?.email || 'None'}</div>
+            </div>
+          </div>
         </div>
       </div>
-    );
+    )
   }
 
+  // Redirect to login if no user
   if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-text mb-4">Please log in to access your dashboard</p>
-          <a href="/login" className="text-primary hover:text-primary/80 font-medium">
-            Go to Login
-          </a>
-        </div>
-      </div>
-    );
+    console.log('🚫 No user found, redirecting to login')
+    window.location.href = '/login'
+    return null
   }
 
-  // Create a fallback profile if profile is not loaded yet
-  const displayProfile = profile || {
-    id: user.id,
-    email: user.email || '',
-    full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student',
-    student_id: user.user_metadata?.student_id || 'N/A',
-    department: user.user_metadata?.department || 'N/A',
-    year: user.user_metadata?.year || null,
-    role: user.user_metadata?.role || 'student',
-    campus_coin_balance: 0,
-    total_earned: 0,
-    total_spent: 0,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+  console.log('✅ Dashboard rendering with user:', user.email)
+
+  const xpForNextLevel = 3000
+  const xpProgress = Math.round((user.xp / xpForNextLevel) * 100)
+
+  const upcomingEvents = [
+    {
+      id: 1,
+      title: "AI Workshop Series",
+      date: "Tomorrow, 2:00 PM",
+      location: "Tech Lab 205",
+      xpReward: 150,
+      attendees: 45,
+      type: "workshop",
+      category: "Tech"
+    },
+    {
+      id: 2,
+      title: "Photography Club Meetup",
+      date: "Thu, 6:00 PM",
+      location: "Art Building",
+      xpReward: 100,
+      attendees: 23,
+      type: "club",
+      category: "Arts"
+    },
+    {
+      id: 3,
+      title: "Campus Coding Competition",
+      date: "Sat, 10:00 AM",
+      location: "Computer Science Building",
+      xpReward: 300,
+      attendees: 78,
+      type: "competition",
+      category: "Tech"
+    },
+    {
+      id: 4,
+      title: "Yoga & Wellness Session",
+      date: "Fri, 5:00 PM",
+      location: "Campus Green",
+      xpReward: 75,
+      attendees: 32,
+      type: "wellness",
+      category: "Sports"
+    }
+  ]
+
+  const recentBadges = [
+    { id: 1, name: "Event Explorer", icon: Calendar, color: "text-blue-500", rarity: "common", description: "Attended your first event" },
+    { id: 2, name: "Social Butterfly", icon: Users, color: "text-green-500", rarity: "rare", description: "Joined 3 different clubs" },
+    { id: 3, name: "Knowledge Seeker", icon: BookOpen, color: "text-purple-500", rarity: "epic", description: "Attended 10 academic events" },
+    { id: 4, name: "Campus Champion", icon: Trophy, color: "text-yellow-500", rarity: "legendary", description: "Reached Level 10" }
+  ]
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8"
-        >
-          <h1 className="text-4xl font-bold text-text mb-2">
-            Welcome back, {displayProfile.full_name}!
-          </h1>
-          <p className="text-text/70">
-            Here's what's happening with your campus economy account today.
-          </p>
-        </motion.div>
-
-        {/* Stats Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
-        >
-          <StatsCard
-            title="Campus Coins"
-            value={`${displayProfile.campus_coin_balance.toFixed(2)}`}
-            icon={Coins}
-            color="primary"
-            trend="up"
-            trendValue="+12.5%"
-          />
-          <StatsCard
-            title="Total Earned"
-            value={`${displayProfile.total_earned.toFixed(2)}`}
-            icon={TrendingUp}
-            color="success"
-            trend="up"
-            trendValue="+8.2%"
-          />
-          <StatsCard
-            title="Total Spent"
-            value={`${displayProfile.total_spent.toFixed(2)}`}
-            icon={Activity}
-            color="secondary"
-            trend="up"
-            trendValue="+5.1%"
-          />
-          <StatsCard
-            title="NFT Badges"
-            value="5"
-            icon={Trophy}
-            color="accent"
-            trend="up"
-            trendValue="+2"
-          />
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <SimpleCard>
-              <h2 className="text-xl font-semibold text-text mb-6">Quick Actions</h2>
-              <div className="space-y-4">
-                <SimpleButton className="w-full flex items-center justify-center gap-2">
-                  <Eye className="w-5 h-5" />
-                  View Rewards
-                </SimpleButton>
-                <SimpleButton variant="secondary" className="w-full flex items-center justify-center gap-2">
-                  <Send className="w-5 h-5" />
-                  Send Tokens
-                </SimpleButton>
-                <SimpleButton variant="outline" className="w-full flex items-center justify-center gap-2">
-                  <Download className="w-5 h-5" />
-                  Export Data
-                </SimpleButton>
-              </div>
-            </SimpleCard>
-          </motion.div>
-
-          {/* Recent Transactions */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="lg:col-span-2"
-          >
-            <SimpleCard>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-text">Recent Transactions</h2>
-                <SimpleButton size="sm" variant="outline">
-                  View All
-                </SimpleButton>
-              </div>
-              
-              {loadingTransactions ? (
-                <div className="text-center py-8">
-                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-                  <p className="text-text/70">Loading transactions...</p>
-                </div>
-              ) : transactions.length > 0 ? (
-                <div className="space-y-3">
-                  {transactions.slice(0, 5).map((transaction) => (
-                    <TransactionItem key={transaction.id} transaction={transaction} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-text/30 mx-auto mb-4" />
-                  <p className="text-text/70">No transactions yet</p>
-                  <p className="text-text/50 text-sm">Start earning tokens to see your transaction history</p>
-                </div>
-              )}
-            </SimpleCard>
-          </motion.div>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="container py-8">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-2 mb-2">
+            <h1 className="text-3xl font-bold text-foreground">
+              Hey {user.name} 👋
+            </h1>
+            <Badge variant="secondary" size="lg">
+              Level {user.level}
+            </Badge>
+          </div>
+          <p className="text-muted-foreground">Ready to connect and earn some XP today?</p>
         </div>
 
-        {/* Recent Activity & Achievements */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6"
-        >
-          {/* Recent Activity */}
-          <SimpleCard>
-            <h2 className="text-xl font-semibold text-text mb-6">Recent Activity</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-success/10 rounded-xl">
-                <div className="w-2 h-2 bg-success rounded-full"></div>
-                <div>
-                  <p className="text-text font-medium">Attendance Reward</p>
-                  <p className="text-text/60 text-sm">2 hours ago</p>
+        <div className="grid gap-6 lg:grid-cols-12">
+          {/* Left Column */}
+          <div className="space-y-6 lg:col-span-8">
+            {/* XP & Progress */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Zap className="h-5 w-5 text-secondary" />
+                      <span>Your Progress</span>
+                    </CardTitle>
+                    <CardDescription>
+                      {xpForNextLevel - user.xp} XP until Level {user.level + 1}
+                    </CardDescription>
+                  </div>
+                  <Badge variant="outline" size="lg">{user.xp} XP</Badge>
                 </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-xl">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <div>
-                  <p className="text-text font-medium">Hackathon Participation</p>
-                  <p className="text-text/60 text-sm">1 day ago</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Level {user.level}</span>
+                    <span>Level {user.level + 1}</span>
+                  </div>
+                  <div className="relative h-3 bg-secondary/20 rounded-full overflow-hidden">
+                    <div 
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
+                      style={{ width: `${xpProgress}%` }}
+                    ></div>
+                    <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
+                      {xpProgress}%
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0 XP</span>
+                    <span>{xpForNextLevel} XP</span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-secondary/10 rounded-xl">
-                <div className="w-2 h-2 bg-secondary rounded-full"></div>
-                <div>
-                  <p className="text-text font-medium">Canteen Purchase</p>
-                  <p className="text-text/60 text-sm">3 days ago</p>
-                </div>
-              </div>
-            </div>
-          </SimpleCard>
+              </CardContent>
+            </Card>
 
-          {/* Achievements */}
-          <SimpleCard>
-            <h2 className="text-xl font-semibold text-text mb-6">Latest Achievements</h2>
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl">
-                <div className="w-12 h-12 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-text">First Purchase</p>
-                  <p className="text-text/60 text-sm">Made your first campus purchase</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-success/10 to-secondary/10 rounded-xl">
-                <div className="w-12 h-12 bg-gradient-to-r from-success to-secondary rounded-xl flex items-center justify-center">
-                  <Calendar className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-text">Regular Attendee</p>
-                  <p className="text-text/60 text-sm">Attended 10 events this month</p>
-                </div>
-              </div>
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2">
+                    <Flame className="h-5 w-5 text-orange-500" />
+                    <div>
+                      <div className="text-2xl font-bold">{user.streak_count}</div>
+                      <p className="text-xs text-muted-foreground">Day Streak</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-blue-500" />
+                    <div>
+                      <div className="text-2xl font-bold">{user.total_events_attended}</div>
+                      <p className="text-xs text-muted-foreground">Events Attended</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-green-500" />
+                    <div>
+                      <div className="text-2xl font-bold">{user.total_clubs_joined}</div>
+                      <p className="text-xs text-muted-foreground">Clubs Joined</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2">
+                    <Award className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <div className="text-2xl font-bold">{user.badges_earned}</div>
+                      <p className="text-xs text-muted-foreground">Badges Earned</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </SimpleCard>
-        </motion.div>
+
+            {/* Additional Stats */}
+            <div className="grid gap-4 md:grid-cols-4">
+              {additionalStats.map((stat, index) => {
+                const Icon = stat.icon
+                return (
+                  <Card key={index} className="hover:shadow-md transition-shadow">
+                    <CardContent className="pt-4">
+                      <div className="flex items-center space-x-2">
+                        <Icon className={`h-4 w-4 ${stat.color}`} />
+                        <div>
+                          <div className="text-lg font-bold">{stat.value}</div>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-xs text-muted-foreground">{stat.label}</span>
+                            <span className="text-xs text-green-500">↑ {stat.change}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+
+            {/* Event Categories */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <span>Event Categories</span>
+                </CardTitle>
+                <CardDescription>Browse events by category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {eventCategories.map((category, index) => {
+                    const Icon = category.icon
+                    return (
+                      <Link key={index} href={`/events?category=${category.name.toLowerCase()}`}>
+                        <div className="flex items-center space-x-2 p-3 rounded-lg border hover:bg-muted/50 transition-colors cursor-pointer">
+                          <div className={`p-2 rounded-md ${category.color}`}>
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">{category.name}</div>
+                            <div className="text-xs text-muted-foreground">{category.count} events</div>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Events */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    <span>Upcoming Events</span>
+                  </CardTitle>
+                  <Link href="/events">
+                    <Button variant="ghost" size="sm">
+                      View All
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {upcomingEvents.map((event) => (
+                  <div key={event.id} className="flex items-center justify-between p-4 rounded-xl border hover:shadow-md transition-shadow">
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-foreground">{event.title}</h3>
+                        <Badge variant="secondary" className="ml-2">
+                          {event.category}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{event.date}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MapPin className="h-3 w-3" />
+                          <span>{event.location}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Users className="h-3 w-3" />
+                          <span>{event.attendees} attending</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 ml-4">
+                      <Badge variant="outline" className="flex items-center space-x-1">
+                        <Zap className="h-3 w-3 text-yellow-500" />
+                        <span>+{event.xpReward} XP</span>
+                      </Badge>
+                      <Button size="sm">Join</Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6 lg:col-span-4">
+            {/* Recent Badges */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Award className="h-5 w-5 text-secondary" />
+                  <span>Recent Badges</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recentBadges.map((badge) => {
+                  const Icon = badge.icon
+                  return (
+                    <div key={badge.id} className="flex items-center space-x-3 p-3 rounded-xl border hover:shadow-md transition-shadow">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${badge.color} bg-muted`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-foreground">{badge.name}</div>
+                        <div className="text-xs text-muted-foreground">{badge.description}</div>
+                        <Badge 
+                          variant={badge.rarity === 'legendary' ? 'default' : badge.rarity === 'epic' ? 'destructive' : badge.rarity === 'rare' ? 'secondary' : 'outline'} 
+                          size="sm"
+                          className="mt-1"
+                        >
+                          {badge.rarity}
+                        </Badge>
+                      </div>
+                    </div>
+                  )
+                })}
+                <Link href="/badges">
+                  <Button variant="ghost" className="w-full mt-2">
+                    View All Badges
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Plus className="h-5 w-5 text-primary" />
+                  <span>Quick Actions</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-3">
+                {quickActions.map((action, index) => {
+                  const Icon = action.icon
+                  return (
+                    <Link key={index} href={action.href}>
+                      <Button variant="ghost" className="h-auto p-4 flex-col space-y-2 w-full hover:shadow-md transition-shadow">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${action.color} text-white`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <span className="text-xs text-center">{action.label}</span>
+                      </Button>
+                    </Link>
+                  )
+                })}
+              </CardContent>
+            </Card>
+
+            {/* Leaderboard Preview */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <Trophy className="h-5 w-5 text-secondary" />
+                    <span>Top Students</span>
+                  </CardTitle>
+                  <Link href="/leaderboard">
+                    <Button variant="ghost" size="sm">
+                      View All
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {leaderboardPreview.map((student) => (
+                  <div key={student.rank} className="flex items-center justify-between p-3 rounded-xl border hover:shadow-md transition-shadow">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                        #{student.rank}
+                      </div>
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                        {student.avatar}
+                      </div>
+                      <div>
+                        <div className="font-medium text-foreground text-sm">{student.name}</div>
+                        <div className="text-xs text-muted-foreground">{student.xp} XP</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-green-500">{student.change}</div>
+                      <div className="flex justify-end">
+                        {student.rank === 1 && <Crown className="h-4 w-4 text-yellow-500" />}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Campus Buzz */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Star className="h-5 w-5 text-secondary" />
+                  <span>Campus Buzz</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {campusBuzz.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.id} className="flex items-start space-x-3 p-3 rounded-xl border hover:shadow-md transition-shadow">
+                      <div className={`p-2 rounded-lg bg-muted`}>
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div className="font-medium text-foreground text-sm">{item.title}</div>
+                          <Badge variant="outline" className="text-xs">
+                            {item.category}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">{item.time}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }

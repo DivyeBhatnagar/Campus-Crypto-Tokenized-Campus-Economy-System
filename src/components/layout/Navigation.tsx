@@ -1,185 +1,254 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { WalletConnect } from '@/components/wallet/WalletConnect';
-import { useWeb3 } from '@/hooks/useWeb3';
+import * as React from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/Button"
+import { Badge } from "@/components/ui/Badge"
+import { useAuth } from '@/hooks/useAuth'
 import { 
   Home, 
-  Dashboard, 
-  Coins, 
+  LayoutDashboard, 
+  Calendar, 
+  Users, 
   Trophy, 
-  Store, 
-  Settings, 
+  User, 
+  LogOut, 
   Menu, 
   X,
-  BookOpen,
-  BarChart
-} from 'lucide-react';
-import { Card } from '@/components/ui';
+  GraduationCap,
+  Coins,
+  ShoppingBag,
+  Award
+} from "lucide-react"
 
-const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Dashboard', href: '/dashboard', icon: Dashboard },
-  { name: 'Earn Tokens', href: '/earn', icon: Coins },
-  { name: 'Marketplace', href: '/marketplace', icon: Store },
-  { name: 'Badges', href: '/badges', icon: Trophy },
-  { name: 'Analytics', href: '/analytics', icon: BarChart },
-];
+const Navigation = () => {
+  const { user, signOut } = useAuth()
+  const pathname = usePathname()
+  const router = useRouter()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
-const adminNavigation = [
-  { name: 'Admin Panel', href: '/admin', icon: Settings },
-  { name: 'Manage Rewards', href: '/admin/rewards', icon: Coins },
-  { name: 'User Management', href: '/admin/users', icon: BookOpen },
-];
+  const handleSignOut = async () => {
+    await signOut()
+    router.push('/')
+  }
 
-export function Navigation() {
-  const pathname = usePathname();
-  const { isConnected, user } = useWeb3();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigationItems = React.useMemo(() => {
+    const baseItems = [
+      { href: "/", label: "Home", icon: Home },
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/events", label: "Events", icon: Calendar },
+      { href: "/clubs", label: "Clubs & Societies", icon: Users },
+      { href: "/leaderboard", label: "Leaderboard", icon: Trophy },
+    ]
 
-  const isAdmin = user?.role === 'admin';
-  const navItems = isConnected 
-    ? [...navigation, ...(isAdmin ? adminNavigation : [])]
-    : [{ name: 'Home', href: '/', icon: Home }];
+    if (user?.role === 'student') {
+      return [
+        ...baseItems,
+        { href: "/earn", label: "Earn Tokens", icon: Coins },
+        { href: "/marketplace", label: "Marketplace", icon: ShoppingBag },
+        { href: "/badges", label: "Badges", icon: Award },
+      ]
+    }
+
+    if (user?.role === 'admin') {
+      return [
+        ...baseItems,
+        { href: "/admin", label: "Admin Panel", icon: LayoutDashboard },
+        { href: "/admin/users", label: "User Management", icon: Users },
+        { href: "/admin/analytics", label: "Analytics", icon: Trophy },
+      ]
+    }
+
+    return baseItems
+  }, [user?.role])
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === href
+    }
+    return pathname.startsWith(href)
+  }
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b border-text/10">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-              <Coins className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-text">CampusToken</span>
-          </Link>
+    <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-18 items-center px-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center space-x-2 mr-6">
+          <div className="neumorphic-card flex h-11 w-11 items-center justify-center rounded-xl bg-primary p-2 shrink-0">
+            <GraduationCap className="h-7 w-7 text-primary-foreground" />
+          </div>
+          <span className="hidden font-bold text-foreground sm:inline-block text-lg">
+            Campus Coin
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex md:flex-1 md:items-center md:justify-between">
+          <div className="flex items-center space-x-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'text-primary bg-primary/10'
-                      : 'text-text/70 hover:text-text hover:bg-background/50'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.name}</span>
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={isActive(item.href) ? "primary" : "ghost"}
+                    size="sm"
+                    className="flex items-center space-x-2 h-10 px-3 py-2"
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="hidden lg:inline whitespace-nowrap">{item.label}</span>
+                  </Button>
                 </Link>
-              );
+              )
             })}
           </div>
 
-          {/* Wallet Connect & Mobile Menu */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:block">
-              <WalletConnect />
-            </div>
-            
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg bg-background shadow-neumorphic-sm hover:shadow-neumorphic transition-all duration-200"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5 text-text" />
-              ) : (
-                <Menu className="w-5 h-5 text-text" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="md:hidden py-4 space-y-2"
-          >
-            {navItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
-                    isActive
-                      ? 'text-primary bg-primary/10'
-                      : 'text-text/70 hover:text-text hover:bg-background/50'
-                  }`}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.name}</span>
+          {/* User Section */}
+          <div className="flex items-center space-x-3">
+            {user ? (
+              <div className="flex items-center space-x-2">
+                {user.role === 'student' && user.xp !== undefined && (
+                  <div className="hidden lg:flex items-center space-x-2">
+                    <Badge variant="secondary" size="sm">
+                      Level {user.level || 1}
+                    </Badge>
+                    <Badge variant="outline" size="sm">
+                      {user.xp} XP
+                    </Badge>
+                  </div>
+                )}
+                
+                <Link href="/profile">
+                  <Button variant="ghost" size="sm" className="flex items-center space-x-2 h-10 px-3">
+                    <User className="h-5 w-5 shrink-0" />
+                    <span className="hidden lg:inline whitespace-nowrap">{user.name || user.email}</span>
+                  </Button>
                 </Link>
-              );
-            })}
-            
-            <div className="pt-4 border-t border-text/10">
-              <WalletConnect variant="full" />
-            </div>
-          </motion.div>
-        )}
-      </div>
-    </nav>
-  );
-}
-
-export function Footer() {
-  return (
-    <footer className="mt-20 py-12 bg-gradient-to-r from-primary/5 to-secondary/5">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
-                <Coins className="w-5 h-5 text-white" />
+                
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 h-10 px-3 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <LogOut className="h-5 w-5 shrink-0" />
+                  <span className="hidden lg:inline whitespace-nowrap">Logout</span>
+                </Button>
               </div>
-              <span className="text-xl font-bold text-text">CampusToken</span>
-            </div>
-            <p className="text-text/70 max-w-md">
-              Revolutionizing campus life with blockchain technology. Earn tokens for positive contributions 
-              and redeem them for real-world rewards.
-            </p>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold text-text mb-4">Platform</h3>
-            <ul className="space-y-2">
-              <li><Link href="/earn" className="text-text/70 hover:text-text transition-colors">Earn Tokens</Link></li>
-              <li><Link href="/marketplace" className="text-text/70 hover:text-text transition-colors">Marketplace</Link></li>
-              <li><Link href="/badges" className="text-text/70 hover:text-text transition-colors">NFT Badges</Link></li>
-              <li><Link href="/analytics" className="text-text/70 hover:text-text transition-colors">Analytics</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold text-text mb-4">Support</h3>
-            <ul className="space-y-2">
-              <li><Link href="/help" className="text-text/70 hover:text-text transition-colors">Help Center</Link></li>
-              <li><Link href="/docs" className="text-text/70 hover:text-text transition-colors">Documentation</Link></li>
-              <li><Link href="/contact" className="text-text/70 hover:text-text transition-colors">Contact Us</Link></li>
-              <li><Link href="/privacy" className="text-text/70 hover:text-text transition-colors">Privacy Policy</Link></li>
-            </ul>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/login">
+                  <Button variant="ghost" size="sm" className="h-10">Login</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="primary" size="sm" className="h-10">Sign Up</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
-        
-        <div className="mt-8 pt-8 border-t border-text/10 text-center">
-          <p className="text-text/70">
-            © 2024 Tokenized Campus Economy. Built with Next.js, Solidity, and lots of ❤️
-          </p>
+
+        {/* Mobile Menu Button */}
+        <div className="flex flex-1 items-center justify-end md:hidden">
+          {user && user.role === 'student' && user.xp !== undefined && (
+            <div className="flex items-center space-x-2 mr-3">
+              <Badge variant="secondary" size="sm">
+                L{user.level || 1}
+              </Badge>
+            </div>
+          )}
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMobileMenu}
+            aria-label="Toggle menu"
+            className="h-11 w-11 shrink-0"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </Button>
         </div>
       </div>
-    </footer>
-  );
+
+      {/* Mobile Navigation */}
+      {isMobileMenuOpen && (
+        <div className="border-t border-border/40 bg-background/95 backdrop-blur md:hidden">
+          <div className="container py-4 space-y-3">
+            {navigationItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block"
+                >
+                  <Button
+                    variant={isActive(item.href) ? "primary" : "ghost"}
+                    className="w-full justify-start space-x-3 h-12"
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span>{item.label}</span>
+                  </Button>
+                </Link>
+              )
+            })}
+            
+            <hr className="border-border/40" />
+            
+            {user ? (
+              <div className="space-y-2">
+                <Link
+                  href="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block"
+                >
+                  <Button variant="ghost" className="w-full justify-start space-x-3 h-12">
+                    <User className="h-5 w-5 shrink-0" />
+                    <span>Profile</span>
+                  </Button>
+                </Link>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start space-x-3 h-12 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground" 
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-5 w-5 shrink-0" />
+                  <span>Logout</span>
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block"
+                >
+                  <Button variant="ghost" className="w-full h-12">Login</Button>
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block"
+                >
+                  <Button variant="primary" className="w-full h-12">Sign Up</Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </nav>
+  )
 }
+
+export { Navigation }
